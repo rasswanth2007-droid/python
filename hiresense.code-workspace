@@ -1,0 +1,30 @@
+{
+  "folders": [
+    { "name": "HireSense", "path": "." }
+  ],
+  "settings": {
+    "editor.formatOnSave": true,
+    "editor.fontSize": 14,
+    "files.exclude": {
+      "**/node_modules": true,
+      "**/__pycache__": true,
+      "**/venv": true,
+      "**/.git": true
+    },
+    "python.defaultInterpreterPath": "./backend/venv/bin/python",
+    "python.terminal.activateEnvironment": true
+  },
+  "launch": {
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "Flask Backend",
+        "type": "debugpy",
+        "request": "launch",
+        "program": "${workspaceFolder}/backend/app.py",
+        "console": "integratedTerminal",
+        "cwd": "${workspaceFolder}/backend"
+      }
+    ]
+  }
+}
