@@ -106,27 +106,6 @@ const s = {
     minHeight: 32,
   },
   rightPanel: {},
-  stepBar: {
-    display: 'flex',
-    marginBottom: 24,
-    background: 'var(--surface)',
-    border: '1px solid var(--border)',
-    borderRadius: 'var(--radius)',
-    overflow: 'hidden',
-    boxShadow: 'var(--shadow-xs)',
-  },
-  step: (active, done) => ({
-    flex: 1,
-    padding: '14px 12px',
-    textAlign: 'center',
-    fontSize: 13,
-    fontWeight: 600,
-    borderBottom: `3px solid ${done ? 'var(--success)' : active ? 'var(--accent)' : 'transparent'}`,
-    color: done ? 'var(--success)' : active ? 'var(--accent)' : 'var(--text-dim)',
-    background: done ? 'var(--success-bg)' : active ? 'var(--accent-bg)' : 'transparent',
-    letterSpacing: '-0.01em',
-    transition: 'all 0.3s ease',
-  }),
   filterBar: {
     display: 'flex',
     gap: 8,
@@ -234,23 +213,10 @@ const s = {
   divider: { borderBottom: '1px solid var(--border-light)', margin: '20px 0' },
 };
 
-// ─── Step Indicator ───────────────────────────────────────────
-function StepBar({ currentStep }) {
-  const steps = ['1. Upload', '2. Requirements', '3. Analyze', '4. Results'];
-  return (
-    <div style={s.stepBar}>
-      {steps.map((label, i) => (
-        <div key={label} style={s.step(i + 1 === currentStep, i + 1 < currentStep)}>{label}</div>
-      ))}
-    </div>
-  );
-}
-
-export default function RecruiterDashboard({ onCandidatesUpdate, companies = [] }) {
+export default function RecruiterDashboard({ companies = [] }) {
   const isMobile = useIsMobile();
   const [files, setFiles] = useState([]);
   const [uploadError, setUploadError] = useState('');
-  const [selectedCompany, setSelectedCompany] = useState('');
   const [jobTitle, setJobTitle] = useState('');
   const [jobDescription, setJobDescription] = useState('');
   const [requiredSkills, setRequiredSkills] = useState([]);
@@ -259,7 +225,6 @@ export default function RecruiterDashboard({ onCandidatesUpdate, companies = [] 
   const [sampleCandidates, setSampleCandidates] = useState([]);
   const [filtered, setFiltered] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [step, setStep] = useState(1);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [filterMode, setFilterMode] = useState('all');
@@ -294,14 +259,6 @@ export default function RecruiterDashboard({ onCandidatesUpdate, companies = [] 
       .then(() => setApiOnline(true))
       .catch(() => setApiOnline(false));
   }, []);
-
-  useEffect(() => {
-    if (files.length > 0 && step < 2) setStep(2);
-  }, [files]);
-
-  useEffect(() => {
-    if ((jobDescription || requiredSkills.length > 0) && step < 3) setStep(Math.max(step, 2));
-  }, [jobDescription, requiredSkills]);
 
   useEffect(() => {
     let result = [...candidates];
@@ -340,7 +297,6 @@ export default function RecruiterDashboard({ onCandidatesUpdate, companies = [] 
       const res = await getSampleCandidates();
       const samples = res.data.candidates || [];
       setSampleCandidates(samples);
-      setStep(2);
       showToast(`${samples.length} sample resumes loaded — configure requirements and click Analyze`);
     } catch (err) {
       setError('Error loading samples: ' + (err.message || 'Unknown error'));
@@ -363,7 +319,6 @@ export default function RecruiterDashboard({ onCandidatesUpdate, companies = [] 
     setError('');
     setSuccess('');
     setLoading(true);
-    setStep(3);
 
     try {
       let parsed;
@@ -389,7 +344,6 @@ export default function RecruiterDashboard({ onCandidatesUpdate, companies = [] 
       const ranked = matchRes.data.ranked_candidates;
 
       setCandidates(ranked);
-      setStep(4);
       const successMsg = `Analysis complete - ${ranked.length} candidates ranked successfully.${erroredItems.length > 0 ? ` (${erroredItems.length} files skipped due to errors)` : ''}`;
       setSuccess(successMsg);
       showToast(`${ranked.length} candidates ranked`);
@@ -399,7 +353,6 @@ export default function RecruiterDashboard({ onCandidatesUpdate, companies = [] 
     } catch (err) {
       const errorMsg = err.response?.data?.error || err.response?.data?.hint || err.message;
       setError('Error: ' + errorMsg);
-      setStep(2);
     } finally {
       setLoading(false);
     }
@@ -472,42 +425,8 @@ export default function RecruiterDashboard({ onCandidatesUpdate, companies = [] 
           }}>
             <div style={s.panelHead}>
               <span style={s.panelTitle}>Job Configuration</span>
-              <span style={{
-                fontSize: 11,
-                background: selectedCompany ? 'var(--accent)' : 'var(--surface-hover)',
-                color: selectedCompany ? '#fff' : 'var(--text-secondary)',
-                padding: '4px 10px',
-                borderRadius: 4,
-                fontWeight: 600,
-                letterSpacing: '0.02em',
-                transition: 'all 0.2s',
-              }}>
-                {selectedCompany || 'RECRUITER'}
-              </span>
             </div>
             <div style={s.panelBody}>
-
-              {/* Company Selection */}
-              <span style={{ ...s.sectionLabel, marginTop: 0 }}>Select Company</span>
-              <select
-                value={selectedCompany}
-                onChange={e => setSelectedCompany(e.target.value)}
-                style={{
-                  ...s.input,
-                  cursor: 'pointer',
-                  appearance: 'auto',
-                }}
-              >
-                <option value="">— Choose your company —</option>
-                {companies.map(c => (
-                  <option key={c.id} value={c.name}>{c.name}</option>
-                ))}
-              </select>
-              <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 6, fontStyle: 'italic' }}>
-                Company names are managed on the Companies page.
-              </div>
-
-              <div style={s.divider} />
 
               {/* Upload */}
               <span style={s.sectionLabel}>Resume Upload</span>
@@ -667,7 +586,6 @@ export default function RecruiterDashboard({ onCandidatesUpdate, companies = [] 
 
         {/* ── RIGHT PANEL ── */}
         <div style={s.rightPanel}>
-          <StepBar currentStep={step} />
 
           {error && <div style={s.errorBox}>{error}</div>}
           {success && <div style={s.successBox}>{success}</div>}

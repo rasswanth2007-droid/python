@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
 import { ThemeProvider } from './ThemeContext';
 import Navigation from './components/Navigation';
-import RecruiterDashboard from './pages/RecruiterDashboard';
-import CandidateDashboard from './pages/CandidateDashboard';
-import Companies from './pages/Companies';
+import Dashboard from './pages/RecruiterDashboard';
 import About from './pages/About';
 
 const DEFAULT_COMPANIES = [
@@ -34,26 +32,17 @@ const DEFAULT_COMPANIES = [
 ];
 
 export default function App() {
-  const [currentPage, setCurrentPage] = useState('recruiter');
-  const [candidates, setCandidates] = useState([]);
-  const [companies, setCompanies] = useState(DEFAULT_COMPANIES);
-
-  const handleCandidatesUpdate = (newCandidates) => {
-    setCandidates(newCandidates);
-  };
+  const [currentPage, setCurrentPage] = useState('dashboard');
+  const [companies] = useState(DEFAULT_COMPANIES);
 
   const renderPage = () => {
     switch (currentPage) {
-      case 'recruiter':
-        return <RecruiterDashboard onCandidatesUpdate={handleCandidatesUpdate} companies={companies} />;
-      case 'candidate':
-        return <CandidateDashboard candidates={candidates} currentUserEmail="user@example.com" />;
-      case 'companies':
-        return <Companies companies={companies} setCompanies={setCompanies} />;
+      case 'dashboard':
+        return <Dashboard companies={companies} />;
       case 'about':
         return <About />;
       default:
-        return <RecruiterDashboard onCandidatesUpdate={handleCandidatesUpdate} companies={companies} />;
+        return <Dashboard companies={companies} />;
     }
   };
 
