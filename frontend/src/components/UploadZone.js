@@ -125,6 +125,8 @@ export default function UploadZone({ onUpload }) {
       'application/msword': ['.doc'],
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
       'text/plain': ['.txt'],
+      'image/png': ['.png'],
+      'image/jpeg': ['.jpg', '.jpeg'],
     },
     multiple: true,
   });
@@ -159,7 +161,7 @@ export default function UploadZone({ onUpload }) {
         <div style={styles.subtitle}>
           {isDragActive ? 'Drop files here...' : 'Drag & drop resume files here, or click to select'}
         </div>
-        <div style={styles.format}>Supported formats: PDF, DOC, DOCX, TXT</div>
+        <div style={styles.format}>Supported formats: PDF, DOC, DOCX, TXT, PNG, JPG, JPEG</div>
       </div>
 
       {files.length > 0 && (

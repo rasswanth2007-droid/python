@@ -333,8 +333,8 @@ export default function About() {
         textAlign: 'center', padding: '20px', fontSize: 12,
         color: 'var(--text-dim)', fontWeight: 500,
       }}>
-        Built with React · Flask · spaCy · Scikit-Learn
+        HireSense 2026
       </div>
-    </div>
+          </div>
   );
 }

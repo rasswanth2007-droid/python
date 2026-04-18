@@ -7,6 +7,8 @@ import json
 # Resume text extraction
 import PyPDF2
 import docx2txt
+import pytesseract
+from PIL import Image
 
 # NLP
 import spacy
@@ -171,12 +173,31 @@ def extract_text_from_docx(filepath):
         print(f"Error reading DOCX file: {str(e)}")
         return ""
 
+def extract_text_from_image(filepath):
+    try:
+        # Open the image file
+        image = Image.open(filepath)
+        
+        # Convert to RGB mode if necessary (for PNG with transparency)
+        if image.mode != 'RGB':
+            image = image.convert('RGB')
+        
+        # Extract text using OCR
+        text = pytesseract.image_to_string(image)
+        
+        return text.strip()
+    except Exception as e:
+        print(f"Error reading image file: {str(e)}")
+        return ""
+
 def extract_text(filepath):
     ext = filepath.lower().split(".")[-1]
     if ext == "pdf":
         return extract_text_from_pdf(filepath)
     elif ext in ["docx", "doc"]:
         return extract_text_from_docx(filepath)
+    elif ext in ["png", "jpg", "jpeg"]:
+        return extract_text_from_image(filepath)
     return ""
 
 # ─── Resume Parsing ──────────────────────────────────────────────
@@ -365,6 +386,11 @@ def match_candidates():
     required_skills = data.get("required_skills", [])
     job_description = data.get("job_description", "")
     min_experience = data.get("min_experience", 0)
+    # Custom weights (default: 70/20/10)
+    weights = data.get("weights", {"skill": 70, "semantic": 20, "experience": 10})
+    w_skill = weights.get("skill", 70) / 100
+    w_semantic = weights.get("semantic", 20) / 100
+    w_experience = weights.get("experience", 10) / 100
 
     print(f"DEBUG: Required skills = {required_skills}")
     ranked = []
@@ -388,11 +414,11 @@ def match_candidates():
         project_weight = sum(1 for kw in project_keywords if kw in c.get("raw_text", "").lower()) * 2
         project_weight = min(project_weight, 20)  # Cap bonus at 20%
         
-        # Weighted final score (70% skills, 20% semantic, 10% weighted by projects & experience)
+        # Weighted final score using custom weights
         final_score = round(
-            (skill_score * 0.70) + 
-            (sem_score * 0.20) + 
-            ((experience_bonus + project_weight) / 100 * 10)
+            (skill_score * w_skill) + 
+            (sem_score * w_semantic) + 
+            ((experience_bonus + project_weight) / 100 * w_experience * 100)
         )
         final_score = min(final_score, 100)  # Cap at 100%
         
