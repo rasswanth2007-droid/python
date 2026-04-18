@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import logoImg from '../assets/hiresense-sq-logo.png';
+import logoImg from '../assets/hiresense-logo-f.png';
 import useIsMobile from '../hooks/useIsMobile';
 import { useTheme } from '../ThemeContext';
 
@@ -11,9 +11,7 @@ export default function Navigation({ currentPage, onPageChange }) {
 
   const pages = [
     { key: 'about', label: 'About' },
-    { key: 'candidate', label: 'Candidate' },
-    { key: 'recruiter', label: 'Recruiter' },
-    { key: 'companies', label: 'Companies' },
+    { key: 'dashboard', label: 'Dashboard' },
   ];
 
   const handlePageChange = (key) => {

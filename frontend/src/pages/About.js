@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import logoImg from '../assets/hiresense-logo.png';
-import logoSqImg from '../assets/hiresense-sq-logo.png';
+import logoImg from '../assets/hiresense-logo-f.png';
+import logoSqImg from '../assets/hiresense-logo-f.png';
 import useIsMobile from '../hooks/useIsMobile';
 
 function AnimatedCounter({ value, suffix = '', label }) {
