@@ -4,42 +4,45 @@ import SkillSelector from '../components/SkillSelector';
 import CandidateCard from '../components/CandidateCard';
 import StatsBar from '../components/StatsBar';
 import { uploadResumes, matchCandidates, parseJD, healthCheck, getSampleCandidates } from '../utils/api';
+import useIsMobile from '../hooks/useIsMobile';
 
 // ─── Shared Styles ────────────────────────────────────────────
 const s = {
-  page: { minHeight: '100vh', background: '#f1f5f9' },
-  layout: { display: 'grid', gridTemplateColumns: '400px 1fr', gap: 24, maxWidth: 1400, margin: '0 auto', padding: '28px 28px 60px' },
-  // Left Panel
+  page: { minHeight: '100vh', background: 'var(--bg)' },
+  layout: { display: 'grid', gridTemplateColumns: '400px 1fr', gap: 24, maxWidth: 'var(--content-max)', margin: '0 auto', padding: '28px 28px 60px' },
   panel: {
-    background: '#fff',
-    border: '1px solid #e2e8f0',
-    borderRadius: 12,
+    background: 'var(--surface-glass)',
+    backdropFilter: 'blur(16px)',
+    WebkitBackdropFilter: 'blur(16px)',
+    border: '1px solid var(--border)',
+    borderRadius: 'var(--radius-lg)',
     overflow: 'hidden',
     position: 'sticky',
-    top: 80,
-    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04)',
+    top: 'calc(var(--nav-height) + 16px)',
+    boxShadow: 'var(--shadow-md)',
+    animation: 'fadeInUp 0.5s ease-out',
   },
   panelHead: {
     padding: '18px 24px',
-    borderBottom: '1px solid #f1f5f9',
+    borderBottom: '1px solid var(--border-light)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    background: '#f8fafc',
+    background: 'var(--accent-bg)',
   },
   panelTitle: {
     fontWeight: 700,
     fontSize: 16,
-    color: '#0f172a',
+    color: 'var(--text)',
     letterSpacing: '-0.01em',
   },
   panelBody: { padding: 24 },
   sectionLabel: {
-    fontSize: 12,
-    fontWeight: 600,
-    color: '#475569',
+    fontSize: 11,
+    fontWeight: 700,
+    color: 'var(--accent)',
     textTransform: 'uppercase',
-    letterSpacing: '0.05em',
+    letterSpacing: '0.08em',
     marginBottom: 10,
     marginTop: 20,
     display: 'block',
@@ -47,64 +50,70 @@ const s = {
   textarea: {
     width: '100%',
     padding: '12px 14px',
-    border: '1px solid #cbd5e1',
-    borderRadius: 8,
+    border: '1px solid var(--border)',
+    borderRadius: 10,
     fontSize: 14,
     fontFamily: 'Inter, sans-serif',
     resize: 'vertical',
     minHeight: 100,
-    color: '#1e293b',
-    background: '#fff',
+    color: 'var(--text)',
+    background: 'var(--surface)',
     lineHeight: 1.6,
     outline: 'none',
-    transition: 'border-color 0.2s, box-shadow 0.2s',
+    transition: 'border-color 0.3s, box-shadow 0.3s',
   },
   input: {
     width: '100%',
     padding: '11px 14px',
-    border: '1px solid #cbd5e1',
-    borderRadius: 8,
+    border: '1px solid var(--border)',
+    borderRadius: 10,
     fontSize: 14,
     fontFamily: 'Inter, sans-serif',
-    color: '#1e293b',
+    color: 'var(--text)',
+    background: 'var(--surface)',
     outline: 'none',
-    transition: 'border-color 0.2s, box-shadow 0.2s',
+    transition: 'border-color 0.3s, box-shadow 0.3s',
+    minHeight: 40,
   },
   analyzeBtn: (loading) => ({
     width: '100%',
     marginTop: 24,
     padding: '14px 20px',
-    background: loading ? '#94a3b8' : '#0f172a',
+    background: loading ? 'var(--text-dim)' : 'var(--accent)',
     color: '#fff',
     border: 'none',
-    borderRadius: 8,
+    borderRadius: 'var(--radius)',
     fontSize: 14,
     fontWeight: 600,
     cursor: loading ? 'wait' : 'pointer',
-    transition: 'all 0.2s',
+    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
     letterSpacing: '0.01em',
+    boxShadow: loading ? 'none' : 'var(--shadow-accent)',
+    minHeight: 48,
+    fontFamily: 'Inter, sans-serif',
   }),
   jdBtn: {
     padding: '8px 14px',
-    background: '#f1f5f9',
-    color: '#334155',
-    border: '1px solid #cbd5e1',
-    borderRadius: 6,
+    background: 'var(--accent-bg)',
+    color: 'var(--accent)',
+    border: '1px solid var(--accent-border)',
+    borderRadius: 'var(--radius-sm)',
     fontSize: 12,
     fontWeight: 600,
     cursor: 'pointer',
     transition: 'all 0.2s',
+    fontFamily: 'Inter, sans-serif',
+    minHeight: 32,
   },
-  // Right Panel
   rightPanel: {},
   stepBar: {
     display: 'flex',
     marginBottom: 24,
-    background: '#fff',
-    border: '1px solid #e2e8f0',
-    borderRadius: 10,
+    background: 'var(--surface)',
+    border: '1px solid var(--border)',
+    borderRadius: 'var(--radius)',
     overflow: 'hidden',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+    boxShadow: 'var(--shadow-xs)',
   },
   step: (active, done) => ({
     flex: 1,
@@ -112,107 +121,117 @@ const s = {
     textAlign: 'center',
     fontSize: 13,
     fontWeight: 600,
-    borderBottom: `3px solid ${done ? '#16a34a' : active ? '#0f172a' : 'transparent'}`,
-    color: done ? '#16a34a' : active ? '#0f172a' : '#94a3b8',
-    background: done ? '#f0fdf4' : active ? '#f8fafc' : 'transparent',
+    borderBottom: `3px solid ${done ? 'var(--success)' : active ? 'var(--accent)' : 'transparent'}`,
+    color: done ? 'var(--success)' : active ? 'var(--accent)' : 'var(--text-dim)',
+    background: done ? 'var(--success-bg)' : active ? 'var(--accent-bg)' : 'transparent',
     letterSpacing: '-0.01em',
+    transition: 'all 0.3s ease',
   }),
   filterBar: {
     display: 'flex',
-    gap: 10,
+    gap: 8,
     marginBottom: 20,
     flexWrap: 'wrap',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   filterChip: (active) => ({
-    padding: '8px 16px',
-    borderRadius: 6,
+    padding: '7px 16px',
+    borderRadius: 10,
     fontSize: 13,
     fontWeight: 500,
     cursor: 'pointer',
-    border: `1px solid ${active ? '#0f172a' : '#cbd5e1'}`,
-    background: active ? '#0f172a' : '#fff',
-    color: active ? '#fff' : '#475569',
-    transition: 'all 0.2s',
+    border: `1px solid ${active ? 'var(--accent)' : 'var(--border)'}`,
+    background: active ? 'var(--accent)' : 'var(--surface)',
+    color: active ? '#fff' : 'var(--text-secondary)',
+    transition: 'all 0.25s ease',
+    boxShadow: active ? 'var(--shadow-accent)' : 'none',
+    minHeight: 36,
+    fontFamily: 'Inter, sans-serif',
   }),
   searchInput: {
     flex: 1,
     maxWidth: 240,
     padding: '10px 16px',
-    border: '1px solid #cbd5e1',
-    borderRadius: 6,
+    border: '1px solid var(--border)',
+    borderRadius: 10,
     fontSize: 13,
     outline: 'none',
     fontFamily: 'Inter, sans-serif',
-    color: '#1e293b',
+    color: 'var(--text)',
+    background: 'var(--surface)',
+    transition: 'border-color 0.3s ease',
+    minHeight: 38,
   },
   emptyState: {
-    background: '#fff',
-    border: '1px solid #e2e8f0',
-    borderRadius: 12,
+    background: 'var(--surface)',
+    border: '1px solid var(--border)',
+    borderRadius: 'var(--radius-lg)',
     padding: '80px 40px',
     textAlign: 'center',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+    boxShadow: 'var(--shadow-sm)',
+    animation: 'fadeIn 0.6s ease-out',
   },
   emptyIcon: {
     width: 64,
     height: 64,
     marginBottom: 20,
     opacity: 0.3,
-    stroke: '#94a3b8',
+    stroke: 'var(--text-muted)',
     strokeWidth: 1.5,
   },
   emptyTitle: {
     fontWeight: 700,
     fontSize: 20,
-    color: '#334155',
+    color: 'var(--text-secondary)',
     marginBottom: 10,
     letterSpacing: '-0.01em',
   },
   emptyDesc: {
     fontSize: 14,
-    color: '#64748b',
+    color: 'var(--text-muted)',
     lineHeight: 1.7,
     maxWidth: 400,
     margin: '0 auto',
   },
   errorBox: {
-    background: '#fef2f2',
-    border: '1px solid #fecaca',
-    borderRadius: 8,
+    background: 'var(--error-bg)',
+    border: '1px solid var(--error-border)',
+    borderRadius: 10,
     padding: '14px 18px',
     marginBottom: 20,
     fontSize: 13,
-    color: '#991b1b',
+    color: 'var(--error)',
     fontWeight: 500,
+    animation: 'fadeInUp 0.3s ease-out',
   },
   successBox: {
-    background: '#f0fdf4',
-    border: '1px solid #bbf7d0',
-    borderRadius: 8,
+    background: 'var(--success-bg)',
+    border: '1px solid var(--success-border)',
+    borderRadius: 10,
     padding: '14px 18px',
     marginBottom: 20,
     fontSize: 13,
-    color: '#166534',
+    color: 'var(--success)',
     fontWeight: 500,
+    animation: 'fadeInUp 0.3s ease-out',
   },
   toast: (show) => ({
     position: 'fixed',
     bottom: 28,
     right: 28,
     zIndex: 200,
-    background: '#0f172a',
+    background: 'var(--accent)',
     color: '#fff',
     padding: '14px 22px',
-    borderRadius: 8,
+    borderRadius: 'var(--radius)',
     fontSize: 13,
     fontWeight: 500,
-    boxShadow: '0 10px 25px rgba(0,0,0,0.15)',
+    boxShadow: 'var(--shadow-accent)',
     transform: show ? 'translateY(0)' : 'translateY(80px)',
     opacity: show ? 1 : 0,
-    transition: 'all 0.3s ease',
+    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
   }),
-  divider: { borderBottom: '1px solid #f1f5f9', margin: '20px 0' },
+  divider: { borderBottom: '1px solid var(--border-light)', margin: '20px 0' },
 };
 
 // ─── Step Indicator ───────────────────────────────────────────
@@ -228,6 +247,7 @@ function StepBar({ currentStep }) {
 }
 
 export default function RecruiterDashboard({ onCandidatesUpdate, companies = [] }) {
+  const isMobile = useIsMobile();
   const [files, setFiles] = useState([]);
   const [uploadError, setUploadError] = useState('');
   const [selectedCompany, setSelectedCompany] = useState('');
@@ -247,15 +267,34 @@ export default function RecruiterDashboard({ onCandidatesUpdate, companies = [] 
   const [apiOnline, setApiOnline] = useState(false);
   const [toast, setToast] = useState({ show: false, msg: '' });
   const [parsedFromJD, setParsedFromJD] = useState(false);
+  const [weights, setWeights] = useState({ skill: 70, semantic: 20, experience: 10 });
+  const [panelCollapsed, setPanelCollapsed] = useState(false);
 
-  // Health check
+  const updateWeight = (key, value) => {
+    value = Math.max(0, Math.min(100, Number(value)));
+    const others = Object.keys(weights).filter(k => k !== key);
+    const remaining = 100 - value;
+    const otherSum = others.reduce((sum, k) => sum + weights[k], 0);
+    const newWeights = { ...weights, [key]: value };
+    if (otherSum === 0) {
+      newWeights[others[0]] = remaining;
+      newWeights[others[1]] = 0;
+    } else {
+      others.forEach(k => {
+        newWeights[k] = Math.round((weights[k] / otherSum) * remaining);
+      });
+      const total = Object.values(newWeights).reduce((a, b) => a + b, 0);
+      if (total !== 100) newWeights[others[0]] += 100 - total;
+    }
+    setWeights(newWeights);
+  };
+
   useEffect(() => {
     healthCheck()
       .then(() => setApiOnline(true))
       .catch(() => setApiOnline(false));
   }, []);
 
-  // Step tracker
   useEffect(() => {
     if (files.length > 0 && step < 2) setStep(2);
   }, [files]);
@@ -264,7 +303,6 @@ export default function RecruiterDashboard({ onCandidatesUpdate, companies = [] 
     if ((jobDescription || requiredSkills.length > 0) && step < 3) setStep(Math.max(step, 2));
   }, [jobDescription, requiredSkills]);
 
-  // Filter candidates
   useEffect(() => {
     let result = [...candidates];
     if (filterMode === 'high') result = result.filter(c => c.final_score >= 70);
@@ -301,7 +339,6 @@ export default function RecruiterDashboard({ onCandidatesUpdate, companies = [] 
       setLoading(true);
       const res = await getSampleCandidates();
       const samples = res.data.candidates || [];
-      // Store samples for analysis but don't display results yet
       setSampleCandidates(samples);
       setStep(2);
       showToast(`${samples.length} sample resumes loaded — configure requirements and click Analyze`);
@@ -333,27 +370,22 @@ export default function RecruiterDashboard({ onCandidatesUpdate, companies = [] 
       let erroredItems = [];
 
       if (sampleCandidates.length > 0) {
-        // Use pre-loaded sample candidates
         parsed = sampleCandidates;
       } else {
-        // 1. Upload & parse resumes from files
         const uploadRes = await uploadResumes(files);
         parsed = uploadRes.data.candidates;
 
-        // Validate we got the expected candidates back
         if (!parsed || parsed.length === 0) {
           throw new Error('No candidates returned from upload. Files may not have been processed.');
         }
 
-        // Check if we got errors for all files
         erroredItems = parsed.filter(p => p.error);
         if (erroredItems.length === parsed.length) {
           throw new Error(`All files failed to process: ${erroredItems.map(e => e.error).join(', ')}`);
         }
       }
 
-      // 2. Match against job requirements
-      const matchRes = await matchCandidates(parsed, requiredSkills, jobDescription, minExp);
+      const matchRes = await matchCandidates(parsed, requiredSkills, jobDescription, minExp, weights);
       const ranked = matchRes.data.ranked_candidates;
 
       setCandidates(ranked);
@@ -361,6 +393,9 @@ export default function RecruiterDashboard({ onCandidatesUpdate, companies = [] 
       const successMsg = `Analysis complete - ${ranked.length} candidates ranked successfully.${erroredItems.length > 0 ? ` (${erroredItems.length} files skipped due to errors)` : ''}`;
       setSuccess(successMsg);
       showToast(`${ranked.length} candidates ranked`);
+
+      // On mobile, auto-collapse the panel after results
+      if (isMobile) setPanelCollapsed(true);
     } catch (err) {
       const errorMsg = err.response?.data?.error || err.response?.data?.hint || err.message;
       setError('Error: ' + errorMsg);
@@ -370,18 +405,77 @@ export default function RecruiterDashboard({ onCandidatesUpdate, companies = [] 
     }
   };
 
+  const inputFocusStyle = {
+    onFocus: (e) => {
+      e.target.style.borderColor = 'var(--accent)';
+      e.target.style.boxShadow = '0 0 0 3px var(--accent-glow)';
+    },
+    onBlur: (e) => {
+      e.target.style.borderColor = 'var(--border)';
+      e.target.style.boxShadow = 'none';
+    },
+  };
+
   return (
     <div style={s.page}>
-      <div style={s.layout}>
+      <div style={{
+        ...s.layout,
+        gridTemplateColumns: isMobile ? '1fr' : '400px 1fr',
+        padding: isMobile ? '16px 12px 40px' : '28px 28px 60px',
+        gap: isMobile ? 16 : 24,
+      }}>
         {/* ── LEFT PANEL ── */}
         <div>
-          <div style={s.panel}>
+          {/* Mobile toggle for panel */}
+          {isMobile && candidates.length > 0 && (
+            <button
+              onClick={() => setPanelCollapsed(!panelCollapsed)}
+              style={{
+                width: '100%',
+                padding: '12px 18px',
+                background: 'var(--surface)',
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius)',
+                fontSize: 13,
+                fontWeight: 600,
+                color: 'var(--accent)',
+                cursor: 'pointer',
+                marginBottom: 12,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                fontFamily: 'Inter, sans-serif',
+                minHeight: 44,
+              }}
+            >
+              <span>Job Configuration</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+                style={{ transform: panelCollapsed ? 'rotate(0deg)' : 'rotate(180deg)', transition: 'transform 0.3s ease' }}>
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </button>
+          )}
+
+          <div style={{
+            ...s.panel,
+            position: isMobile ? 'static' : 'sticky',
+            ...(isMobile && panelCollapsed ? {
+              maxHeight: 0,
+              overflow: 'hidden',
+              border: 'none',
+              padding: 0,
+              margin: 0,
+              boxShadow: 'none',
+              opacity: 0,
+            } : {}),
+            transition: 'all 0.35s cubic-bezier(0.4, 0, 0.2, 1)',
+          }}>
             <div style={s.panelHead}>
               <span style={s.panelTitle}>Job Configuration</span>
               <span style={{
                 fontSize: 11,
-                background: selectedCompany ? '#0f172a' : '#e2e8f0',
-                color: selectedCompany ? '#fff' : '#475569',
+                background: selectedCompany ? 'var(--accent)' : 'var(--surface-hover)',
+                color: selectedCompany ? '#fff' : 'var(--text-secondary)',
                 padding: '4px 10px',
                 borderRadius: 4,
                 fontWeight: 600,
@@ -402,7 +496,6 @@ export default function RecruiterDashboard({ onCandidatesUpdate, companies = [] 
                   ...s.input,
                   cursor: 'pointer',
                   appearance: 'auto',
-                  background: '#fff',
                 }}
               >
                 <option value="">— Choose your company —</option>
@@ -410,7 +503,7 @@ export default function RecruiterDashboard({ onCandidatesUpdate, companies = [] 
                   <option key={c.id} value={c.name}>{c.name}</option>
                 ))}
               </select>
-              <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 6, fontStyle: 'italic' }}>
+              <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 6, fontStyle: 'italic' }}>
                 Company names are managed on the Companies page.
               </div>
 
@@ -425,15 +518,17 @@ export default function RecruiterDashboard({ onCandidatesUpdate, companies = [] 
                   style={{
                     flex: 1,
                     padding: '10px 14px',
-                    background: '#fff',
-                    color: '#475569',
-                    border: '1px solid #cbd5e1',
-                    borderRadius: 6,
+                    background: 'var(--surface)',
+                    color: 'var(--text-secondary)',
+                    border: '1px solid var(--border)',
+                    borderRadius: 'var(--radius-xs)',
                     fontSize: 13,
                     fontWeight: 600,
                     cursor: 'pointer',
                     whiteSpace: 'nowrap',
                     transition: 'all 0.2s',
+                    fontFamily: 'Inter, sans-serif',
+                    minHeight: 40,
                   }}
                   onClick={handleLoadSamples}
                   disabled={loading}
@@ -452,6 +547,7 @@ export default function RecruiterDashboard({ onCandidatesUpdate, companies = [] 
                 placeholder="e.g. Senior Data Scientist"
                 value={jobTitle}
                 onChange={e => setJobTitle(e.target.value)}
+                {...inputFocusStyle}
               />
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 18, marginBottom: 10 }}>
@@ -460,12 +556,12 @@ export default function RecruiterDashboard({ onCandidatesUpdate, companies = [] 
                   style={s.jdBtn}
                   onClick={handleParseJD}
                   onMouseOver={(e) => {
-                    e.target.style.background = '#e2e8f0';
-                    e.target.style.borderColor = '#94a3b8';
+                    e.target.style.background = 'var(--surface-hover)';
+                    e.target.style.borderColor = 'var(--text-muted)';
                   }}
                   onMouseOut={(e) => {
-                    e.target.style.background = '#f1f5f9';
-                    e.target.style.borderColor = '#cbd5e1';
+                    e.target.style.background = 'var(--accent-bg)';
+                    e.target.style.borderColor = 'var(--accent-border)';
                   }}
                 >
                   Auto-extract Skills
@@ -477,9 +573,10 @@ export default function RecruiterDashboard({ onCandidatesUpdate, companies = [] 
                 value={jobDescription}
                 onChange={e => setJobDescription(e.target.value)}
                 rows={4}
+                {...inputFocusStyle}
               />
               {parsedFromJD && (
-                <div style={{ fontSize: 12, color: '#16a34a', marginTop: 6, fontWeight: 500 }}>
+                <div style={{ fontSize: 12, color: 'var(--success)', marginTop: 6, fontWeight: 500 }}>
                   Skills auto-extracted from job description
                 </div>
               )}
@@ -501,8 +598,54 @@ export default function RecruiterDashboard({ onCandidatesUpdate, companies = [] 
                 min="0"
                 value={minExp}
                 onChange={e => setMinExp(e.target.value)}
+                {...inputFocusStyle}
               />
-              <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 6 }}>Years of experience required</div>
+              <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 6 }}>Years of experience required</div>
+
+              <div style={s.divider} />
+
+              {/* Score Weights */}
+              <span style={s.sectionLabel}>Score Weights</span>
+              <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 12 }}>
+                Adjust how each factor contributes to the final score (must total 100%)
+              </div>
+              {[
+                { key: 'skill', label: 'Skill Match', color: 'var(--accent)' },
+                { key: 'semantic', label: 'Semantic Relevance', color: '#3b82f6' },
+                { key: 'experience', label: 'Experience & Projects', color: '#8b5cf6' },
+              ].map(w => (
+                <div key={w.key} style={{ marginBottom: 14 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)' }}>{w.label}</span>
+                    <span style={{
+                      fontSize: 13, fontWeight: 700, color: w.color,
+                      background: 'var(--surface-hover)', padding: '2px 8px', borderRadius: 4,
+                    }}>{weights[w.key]}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={weights[w.key]}
+                    onChange={e => updateWeight(w.key, e.target.value)}
+                    style={{
+                      width: '100%', height: 6, accentColor: w.color,
+                      cursor: 'pointer',
+                    }}
+                  />
+                </div>
+              ))}
+              <div style={{
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                padding: '8px 12px', background: 'var(--surface-secondary)', borderRadius: 'var(--radius-xs)',
+                border: '1px solid var(--border)', fontSize: 12, color: 'var(--text-secondary)',
+              }}>
+                <span>Total</span>
+                <span style={{
+                  fontWeight: 700, fontSize: 14,
+                  color: (weights.skill + weights.semantic + weights.experience) === 100 ? 'var(--success)' : 'var(--error)',
+                }}>{weights.skill + weights.semantic + weights.experience}%</span>
+              </div>
 
               {/* Analyze Button */}
               <button
@@ -510,10 +653,10 @@ export default function RecruiterDashboard({ onCandidatesUpdate, companies = [] 
                 onClick={handleAnalyze}
                 disabled={loading}
                 onMouseOver={(e) => {
-                  if (!loading) e.target.style.background = '#1e293b';
+                  if (!loading) e.target.style.background = 'var(--accent-hover)';
                 }}
                 onMouseOut={(e) => {
-                  if (!loading) e.target.style.background = '#0f172a';
+                  if (!loading) e.target.style.background = 'var(--accent)';
                 }}
               >
                 {loading ? 'Processing Resumes...' : 'Analyze & Rank Candidates'}
@@ -540,6 +683,7 @@ export default function RecruiterDashboard({ onCandidatesUpdate, companies = [] 
                   placeholder="Search by candidate name..."
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
+                  {...inputFocusStyle}
                 />
                 {[
                   { key: 'all', label: 'All' },
@@ -555,7 +699,7 @@ export default function RecruiterDashboard({ onCandidatesUpdate, companies = [] 
                     {f.label}
                   </button>
                 ))}
-                <span style={{ fontSize: 13, color: '#94a3b8', marginLeft: 'auto', fontWeight: 500 }}>
+                <span style={{ fontSize: 13, color: 'var(--text-muted)', marginLeft: 'auto', fontWeight: 500 }}>
                   {filtered.length} of {candidates.length} shown
                 </span>
               </div>
@@ -572,7 +716,7 @@ export default function RecruiterDashboard({ onCandidatesUpdate, companies = [] 
 
               {filtered.length === 0 && (
                 <div style={{ ...s.emptyState, padding: 40 }}>
-                  <div style={{ fontSize: 14, colora3b8: '#94 candidates match the current' }}>No filter.</div>
+                  <div style={{ fontSize: 14, color: 'var(--text-muted)' }}>No candidates match the current filter.</div>
                 </div>
               )}
             </>
@@ -597,7 +741,7 @@ export default function RecruiterDashboard({ onCandidatesUpdate, companies = [] 
             <div style={{ ...s.emptyState, padding: 60 }}>
               <div style={{
                 fontSize: 14,
-                color: '#475569',
+                color: 'var(--text-secondary)',
                 fontWeight: 600,
                 display: 'flex',
                 alignItems: 'center',
@@ -608,19 +752,13 @@ export default function RecruiterDashboard({ onCandidatesUpdate, companies = [] 
                   style={{ width: 20, height: 20, animation: 'spin 1s linear infinite' }}
                   viewBox="0 0 24 24"
                   fill="none"
-                  stroke="#475569"
+                  stroke="currentColor"
                   strokeWidth="2"
                 >
                   <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
                 </svg>
                 Processing resumes with AI...
               </div>
-              <style>{`
-                @keyframes spin {
-                  from { transform: rotate(0deg); }
-                  to { transform: rotate(360deg); }
-                }
-              `}</style>
             </div>
           )}
         </div>
@@ -631,4 +769,3 @@ export default function RecruiterDashboard({ onCandidatesUpdate, companies = [] 
     </div>
   );
 }
-

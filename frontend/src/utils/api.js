@@ -8,8 +8,8 @@ export const uploadResumes = (files) => {
   return API.post('/upload', form, { headers: { 'Content-Type': 'multipart/form-data' } });
 };
 
-export const matchCandidates = (candidates, requiredSkills, jobDescription, minExperience) =>
-  API.post('/match', { candidates, required_skills: requiredSkills, job_description: jobDescription, min_experience: minExperience });
+export const matchCandidates = (candidates, requiredSkills, jobDescription, minExperience, weights) =>
+  API.post('/match', { candidates, required_skills: requiredSkills, job_description: jobDescription, min_experience: minExperience, weights });
 
 export const parseJD = (text) =>
   API.post('/parse-jd', { text });

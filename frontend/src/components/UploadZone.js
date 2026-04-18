@@ -1,20 +1,122 @@
-import React, { useCallback, useState } from 'react';
+import React, { useState } from 'react';
 import { useDropzone } from 'react-dropzone';
+import useIsMobile from '../hooks/useIsMobile';
 
-const UploadZone = ({ onUpload }) => {
-  const [files, setFiles] = useState([]);
-  const [message, setMessage] = useState('');
+const styles = {
+  zone: (isDrag) => ({
+    border: `2px dashed ${isDrag ? 'var(--accent)' : 'var(--border)'}`,
+    borderRadius: 'var(--radius-lg)',
+    padding: '36px 24px',
+    textAlign: 'center',
+    cursor: 'pointer',
+    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+    background: isDrag ? 'var(--accent-bg)' : 'var(--surface-secondary)',
+    ...(isDrag ? {
+      transform: 'scale(1.01)',
+      boxShadow: 'var(--shadow-accent)',
+      borderColor: 'var(--accent)',
+    } : {}),
+  }),
+  icon: {
+    width: 48,
+    height: 48,
+    margin: '0 auto 16px',
+    opacity: 0.4,
+    transition: 'opacity 0.3s ease, transform 0.3s ease',
+  },
+  title: {
+    fontWeight: 700,
+    fontSize: 16,
+    color: 'var(--text)',
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 13,
+    color: 'var(--text-muted)',
+    marginBottom: 4,
+  },
+  format: {
+    fontSize: 12,
+    color: 'var(--text-dim)',
+    marginTop: 8,
+  },
+  fileList: {
+    marginTop: 16,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 8,
+  },
+  fileItem: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: '10px 14px',
+    background: 'var(--surface)',
+    borderRadius: 10,
+    border: '1px solid var(--border)',
+    fontSize: 13,
+    color: 'var(--text)',
+    animation: 'fadeInUp 0.3s ease-out',
+    transition: 'all var(--transition-fast)',
+  },
+  fileName: {
+    fontWeight: 500,
+    flex: 1,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+  },
+  fileSize: {
+    fontSize: 12,
+    color: 'var(--text-muted)',
+    marginLeft: 12,
+    flexShrink: 0,
+  },
+  removeBtn: {
+    marginLeft: 10,
+    background: 'none',
+    border: 'none',
+    fontSize: 16,
+    color: 'var(--text-dim)',
+    cursor: 'pointer',
+    padding: '2px 6px',
+    borderRadius: 6,
+    transition: 'all 0.2s',
+    minWidth: 28,
+    minHeight: 28,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  clearBtn: {
+    marginTop: 12,
+    padding: '8px 16px',
+    background: 'var(--error-bg)',
+    color: 'var(--error)',
+    border: '1px solid var(--error-border)',
+    borderRadius: 10,
+    fontSize: 12,
+    fontWeight: 600,
+    cursor: 'pointer',
+    transition: 'all 0.2s',
+    minHeight: 36,
+    fontFamily: 'Inter, sans-serif',
+  },
+};
 
-  const onDrop = useCallback((acceptedFiles) => {
-    // Accumulate files instead of replacing
-    const updatedFiles = [...files, ...acceptedFiles];
-    setFiles(updatedFiles);
-    setMessage(`${acceptedFiles.length} file(s) added. Total: ${updatedFiles.length} file(s)`);
-    // Immediately pass the updated files back to the parent
-    if (onUpload) {
-      onUpload(updatedFiles);
-    }
-  }, [files, onUpload]);
+export default function UploadZone({ onUpload }) {
+  const isMobile = useIsMobile();
+  const [files, setFilesLocal] = useState([]);
+
+  const updateFiles = (newFiles) => {
+    setFilesLocal(newFiles);
+    onUpload && onUpload(newFiles);
+  };
+
+  const onDrop = (acceptedFiles) => {
+    const updated = [...files, ...acceptedFiles];
+    updateFiles(updated);
+  };
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -22,164 +124,67 @@ const UploadZone = ({ onUpload }) => {
       'application/pdf': ['.pdf'],
       'application/msword': ['.doc'],
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
-      'text/plain': ['.txt']
+      'text/plain': ['.txt'],
     },
-    multiple: true // Allow multiple file uploads
+    multiple: true,
   });
 
-  const removeFile = (index) => {
-    const updatedFiles = files.filter((_, i) => i !== index);
-    setFiles(updatedFiles);
-    setMessage(`${updatedFiles.length} file(s) remaining`);
-    if (onUpload) {
-      onUpload(updatedFiles);
-    }
+  const formatSize = (bytes) => {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  };
+
+  const removeFile = (idx) => {
+    const updated = files.filter((_, i) => i !== idx);
+    updateFiles(updated);
   };
 
   return (
-    <div style={styles.container}>
-      <div {...getRootProps()} style={{
-        ...styles.dropzone,
-        ...(isDragActive ? styles.dragActive : {})
-      }}>
+    <div>
+      <div {...getRootProps()} style={styles.zone(isDragActive)}>
         <input {...getInputProps()} />
-        <div style={styles.iconContainer}>
-          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <div style={{
+          ...styles.icon,
+          animation: isDragActive ? 'float 2s ease-in-out infinite' : 'none',
+          opacity: isDragActive ? 0.8 : 0.4,
+        }}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="1.5">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
             <polyline points="17 8 12 3 7 8" />
             <line x1="12" y1="3" x2="12" y2="15" />
           </svg>
         </div>
-        <p style={styles.title}>Upload Resumes</p>
-        <p style={styles.subtitle}>
-          {isDragActive ? 'Drop the resumes here...' : 'Drag & drop resume files here, or click to select'}
-        </p>
-        <p style={styles.formats}>Supported formats: PDF, DOC, DOCX, TXT</p>
+        <div style={styles.title}>Upload Resumes</div>
+        <div style={styles.subtitle}>
+          {isDragActive ? 'Drop files here...' : 'Drag & drop resume files here, or click to select'}
+        </div>
+        <div style={styles.format}>Supported formats: PDF, DOC, DOCX, TXT</div>
       </div>
 
       {files.length > 0 && (
         <div style={styles.fileList}>
-          <h4 style={styles.fileListTitle}>Selected Files ({files.length}):</h4>
-          {files.map((file, index) => (
-            <div key={index} style={styles.fileItem}>
+          {files.map((file, i) => (
+            <div key={i} style={styles.fileItem}>
+              <span style={{ marginRight: 8, color: 'var(--accent)', display: 'flex', alignItems: 'center' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>
+              </span>
               <span style={styles.fileName}>{file.name}</span>
+              <span style={styles.fileSize}>{formatSize(file.size)}</span>
               <button
-                onClick={() => removeFile(index)}
                 style={styles.removeBtn}
-              >
-                Remove
-              </button>
+                onClick={(e) => { e.stopPropagation(); removeFile(i); }}
+                onMouseOver={e => e.currentTarget.style.color = 'var(--error)'}
+                onMouseOut={e => e.currentTarget.style.color = 'var(--text-dim)'}
+              >×</button>
             </div>
           ))}
+          <button
+            style={styles.clearBtn}
+            onClick={() => updateFiles([])}
+          >Clear all files</button>
         </div>
-      )}
-
-      {message && (
-        <p style={styles.message}>{message}</p>
       )}
     </div>
   );
-};
-
-const styles = {
-  container: {
-    padding: '20px',
-    maxWidth: '600px',
-    margin: '0 auto',
-  },
-  dropzone: {
-    border: '3px dashed #ccc',
-    borderRadius: '12px',
-    padding: '40px 20px',
-    textAlign: 'center',
-    cursor: 'pointer',
-    backgroundColor: '#fafafa',
-    transition: 'all 0.3s ease',
-  },
-  dragActive: {
-    borderColor: '#2196F3',
-    backgroundColor: '#e3f2fd',
-  },
-  iconContainer: {
-    marginBottom: '16px',
-    color: '#666',
-  },
-  title: {
-    fontSize: '24px',
-    fontWeight: '700',
-    margin: '0 0 8px 0',
-    color: '#1a1a1a',
-  },
-  subtitle: {
-    fontSize: '16px',
-    color: '#666',
-    margin: '0 0 12px 0',
-  },
-  formats: {
-    fontSize: '14px',
-    color: '#999',
-    margin: 0,
-  },
-  fileList: {
-    marginTop: '20px',
-    padding: '16px',
-    backgroundColor: '#f5f5f5',
-    borderRadius: '8px',
-  },
-  fileListTitle: {
-    fontSize: '16px',
-    fontWeight: '600',
-    margin: '0 0 12px 0',
-    color: '#1a1a1a',
-  },
-  fileItem: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: '8px 12px',
-    backgroundColor: '#fff',
-    borderRadius: '6px',
-    marginBottom: '8px',
-  },
-  fileName: {
-    fontSize: '14px',
-    color: '#333',
-  },
-  removeBtn: {
-    padding: '4px 12px',
-    backgroundColor: '#ff5252',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    fontSize: '12px',
-    fontWeight: '600',
-  },
-  uploadButton: {
-    width: '100%',
-    padding: '16px 24px',
-    marginTop: '20px',
-    backgroundColor: '#1a1a1a',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '8px',
-    fontSize: '18px',
-    fontWeight: '700',
-    cursor: 'pointer',
-    transition: 'all 0.3s ease',
-  },
-  uploadButtonDisabled: {
-    backgroundColor: '#ccc',
-    cursor: 'not-allowed',
-  },
-  message: {
-    marginTop: '16px',
-    padding: '12px',
-    backgroundColor: '#e8f5e9',
-    borderRadius: '6px',
-    color: '#2e7d32',
-    fontSize: '14px',
-  },
-};
-
-export default UploadZone;
+}

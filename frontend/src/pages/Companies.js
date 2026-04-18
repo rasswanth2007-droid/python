@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
+import useIsMobile from '../hooks/useIsMobile';
 
 const s = {
   page: {
-    minHeight: 'calc(100vh - 64px)',
-    background: '#f1f5f9',
+    minHeight: 'calc(100vh - var(--nav-height))',
+    background: 'var(--bg)',
     padding: '48px 28px',
   },
   container: {
@@ -12,72 +13,76 @@ const s = {
   },
   title: {
     fontSize: 36,
-    fontWeight: 700,
-    color: '#0f172a',
+    fontWeight: 800,
+    color: 'var(--text)',
     marginBottom: 32,
-    letterSpacing: '-0.02em',
+    letterSpacing: '-0.03em',
   },
-  grid: {
+  grid: (mobile) => ({
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-    gap: 20,
-    marginTop: 24,
-  },
+    gridTemplateColumns: mobile ? '1fr' : 'repeat(auto-fill, minmax(300px, 1fr))',
+    gap: mobile ? 14 : 20,
+    marginTop: mobile ? 16 : 24,
+  }),
   companyCard: {
-    background: '#fff',
-    border: '1px solid #e2e8f0',
-    borderRadius: 12,
-    padding: 28,
-    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.06)',
-    transition: 'all 0.2s ease',
+    background: 'var(--surface)',
+    border: '1px solid var(--border)',
+    borderRadius: 'var(--radius-lg)',
+    padding: 26,
+    boxShadow: 'var(--shadow-sm)',
+    transition: 'all 0.35s cubic-bezier(0.4, 0, 0.2, 1)',
     cursor: 'pointer',
+    animation: 'fadeInUp 0.4s ease-out both',
   },
   companyIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 12,
-    background: '#0f172a',
+    width: 50,
+    height: 50,
+    borderRadius: 'var(--radius-md)',
+    background: 'linear-gradient(135deg, var(--accent), var(--accent-light))',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
+    boxShadow: 'var(--shadow-accent)',
   },
   companyName: {
     fontSize: 18,
     fontWeight: 700,
-    color: '#1e293b',
+    color: 'var(--text)',
     marginBottom: 8,
     letterSpacing: '-0.01em',
   },
   companyDesc: {
     fontSize: 14,
-    color: '#64748b',
+    color: 'var(--text-muted)',
     marginBottom: 18,
     lineHeight: 1.6,
   },
   badge: {
     display: 'inline-block',
-    background: '#f1f5f9',
-    color: '#475569',
-    padding: '6px 12px',
-    borderRadius: 6,
+    background: 'var(--accent-bg)',
+    color: 'var(--accent)',
+    padding: '5px 12px',
+    borderRadius: 'var(--radius-sm)',
     fontSize: 12,
     fontWeight: 600,
     marginRight: 8,
     marginBottom: 8,
+    border: '1px solid var(--accent-border)',
   },
   section: {
-    background: '#fff',
-    border: '1px solid #e2e8f0',
-    borderRadius: 12,
+    background: 'var(--surface)',
+    border: '1px solid var(--border)',
+    borderRadius: 'var(--radius-lg)',
     padding: 32,
     marginBottom: 24,
-    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.06)',
+    boxShadow: 'var(--shadow-sm)',
+    animation: 'fadeInUp 0.5s ease-out',
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 700,
-    color: '#0f172a',
+    color: 'var(--text)',
     marginBottom: 20,
     letterSpacing: '-0.01em',
   },
@@ -85,62 +90,83 @@ const s = {
     width: '100%',
     padding: '14px',
     marginTop: 20,
-    background: '#0f172a',
+    background: 'var(--accent)',
     color: '#fff',
     border: 'none',
-    borderRadius: 8,
+    borderRadius: 'var(--radius)',
     fontSize: 14,
     fontWeight: 600,
     cursor: 'pointer',
-    transition: 'all 0.2s',
-    letterSpacing: '0.01em',
+    transition: 'all 0.3s ease',
+    boxShadow: 'var(--shadow-accent)',
+    minHeight: 48,
+    fontFamily: 'Inter, sans-serif',
   },
   secondaryButton: {
     padding: '10px 18px',
-    background: '#fff',
-    color: '#475569',
-    border: '1px solid #cbd5e1',
-    borderRadius: 8,
+    background: 'var(--surface)',
+    color: 'var(--accent)',
+    border: '1px solid var(--accent-border)',
+    borderRadius: 10,
     fontSize: 13,
     fontWeight: 600,
     cursor: 'pointer',
     transition: 'all 0.2s',
+    minHeight: 40,
+    fontFamily: 'Inter, sans-serif',
   },
   input: {
     width: '100%',
     padding: '12px 14px',
-    border: '1px solid #cbd5e1',
-    borderRadius: 8,
+    border: '1px solid var(--border)',
+    borderRadius: 10,
     fontSize: 14,
     fontFamily: 'Inter, sans-serif',
     marginBottom: 16,
-    color: '#1e293b',
+    color: 'var(--text)',
+    background: 'var(--surface)',
     outline: 'none',
-    transition: 'border-color 0.2s',
+    transition: 'border-color 0.3s ease, box-shadow 0.3s ease',
+    minHeight: 42,
   },
   textarea: {
     width: '100%',
     padding: '12px 14px',
-    border: '1px solid #cbd5e1',
-    borderRadius: 8,
+    border: '1px solid var(--border)',
+    borderRadius: 10,
     fontSize: 14,
     fontFamily: 'Inter, sans-serif',
     minHeight: 100,
     marginBottom: 16,
     resize: 'vertical',
-    color: '#1e293b',
+    color: 'var(--text)',
+    background: 'var(--surface)',
     outline: 'none',
   },
   label: {
-    fontSize: 13,
-    fontWeight: 600,
-    color: '#334155',
+    fontSize: 12,
+    fontWeight: 700,
+    color: 'var(--accent)',
     marginBottom: 6,
     display: 'block',
+    textTransform: 'uppercase',
+    letterSpacing: '0.08em',
+  },
+};
+
+const inputFocusHandlers = {
+  onFocus: (e) => {
+    e.target.style.borderColor = 'var(--accent)';
+    e.target.style.boxShadow = '0 0 0 3px var(--accent-glow)';
+  },
+  onBlur: (e) => {
+    e.target.style.borderColor = 'var(--border)';
+    e.target.style.boxShadow = 'none';
   },
 };
 
 export default function Companies({ companies, setCompanies }) {
+  const isMobile = useIsMobile();
 
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
@@ -173,24 +199,26 @@ export default function Companies({ companies, setCompanies }) {
   };
 
   return (
-    <div style={s.page}>
+    <div style={{ ...s.page, padding: isMobile ? '24px 12px' : '48px 28px' }}>
       <div style={s.container}>
-        <h1 style={s.title}>Companies</h1>
+        <h1 style={{ ...s.title, fontSize: isMobile ? 26 : 36 }}>Companies</h1>
 
         <div style={s.section}>
           <div style={s.sectionTitle}>Registered Companies ({companies.length})</div>
-          <div style={s.grid}>
-            {companies.map(company => (
+          <div style={s.grid(isMobile)}>
+            {companies.map((company, i) => (
               <div
                 key={company.id}
-                style={s.companyCard}
+                style={{ ...s.companyCard, animationDelay: `${i * 0.08}s` }}
                 onMouseOver={(e) => {
-                  e.currentTarget.style.boxShadow = '0 8px 16px rgba(0,0,0,0.1)';
-                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = 'var(--shadow-card-hover)';
+                  e.currentTarget.style.transform = 'translateY(-3px)';
+                  e.currentTarget.style.borderColor = 'var(--accent-border)';
                 }}
                 onMouseOut={(e) => {
-                  e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.06)';
+                  e.currentTarget.style.boxShadow = 'var(--shadow-sm)';
                   e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.borderColor = 'var(--border)';
                 }}
               >
                 <div style={s.companyIcon}>
@@ -211,15 +239,15 @@ export default function Companies({ companies, setCompanies }) {
         </div>
 
         <div style={s.section}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 10 }}>
             <div style={s.sectionTitle}>Register New Company</div>
             <button
               onClick={() => setShowForm(!showForm)}
               style={{
                 ...s.secondaryButton,
-                background: showForm ? '#fef2f2' : '#fff',
-                borderColor: showForm ? '#fecaca' : '#cbd5e1',
-                color: showForm ? '#dc2626' : '#475569',
+                background: showForm ? 'var(--error-bg)' : 'var(--surface)',
+                borderColor: showForm ? 'var(--error-border)' : 'var(--accent-border)',
+                color: showForm ? 'var(--error)' : 'var(--accent)',
               }}
             >
               {showForm ? 'Cancel' : 'Add Company'}
@@ -227,10 +255,8 @@ export default function Companies({ companies, setCompanies }) {
           </div>
 
           {showForm && (
-            <form onSubmit={handleRegister}>
-              <label style={s.label}>
-                Company Name *
-              </label>
+            <form onSubmit={handleRegister} style={{ animation: 'fadeInUp 0.3s ease-out' }}>
+              <label style={s.label}>Company Name *</label>
               <input
                 style={s.input}
                 type="text"
@@ -239,11 +265,10 @@ export default function Companies({ companies, setCompanies }) {
                 value={formData.name}
                 onChange={handleInputChange}
                 required
+                {...inputFocusHandlers}
               />
 
-              <label style={s.label}>
-                Description *
-              </label>
+              <label style={s.label}>Description *</label>
               <textarea
                 style={s.textarea}
                 name="description"
@@ -251,11 +276,10 @@ export default function Companies({ companies, setCompanies }) {
                 value={formData.description}
                 onChange={handleInputChange}
                 required
+                {...inputFocusHandlers}
               />
 
-              <label style={s.label}>
-                Contact Email
-              </label>
+              <label style={s.label}>Contact Email</label>
               <input
                 style={s.input}
                 type="email"
@@ -263,11 +287,10 @@ export default function Companies({ companies, setCompanies }) {
                 placeholder="contact@company.com"
                 value={formData.contactEmail}
                 onChange={handleInputChange}
+                {...inputFocusHandlers}
               />
 
-              <label style={s.label}>
-                Location
-              </label>
+              <label style={s.label}>Location</label>
               <input
                 style={s.input}
                 type="text"
@@ -275,13 +298,14 @@ export default function Companies({ companies, setCompanies }) {
                 placeholder="e.g. San Francisco, CA"
                 value={formData.location}
                 onChange={handleInputChange}
+                {...inputFocusHandlers}
               />
 
               <button
                 type="submit"
                 style={s.button}
-                onMouseOver={(e) => e.target.style.background = '#1e293b'}
-                onMouseOut={(e) => e.target.style.background = '#0f172a'}
+                onMouseOver={(e) => e.target.style.background = 'var(--accent-hover)'}
+                onMouseOut={(e) => e.target.style.background = 'var(--accent)'}
               >
                 Register Company
               </button>
@@ -291,13 +315,13 @@ export default function Companies({ companies, setCompanies }) {
 
         <div style={s.section}>
           <div style={s.sectionTitle}>Company Management</div>
-          <p style={{ fontSize: 15, color: '#475569', lineHeight: 1.8, marginBottom: 16 }}>
-            <strong style={{ color: '#1e293b' }}>For Company Admins:</strong> Register your company to start recruiting. Once registered,
+          <p style={{ fontSize: 15, color: 'var(--text-secondary)', lineHeight: 1.8, marginBottom: 16 }}>
+            <strong style={{ color: 'var(--text)' }}>For Company Admins:</strong> Register your company to start recruiting. Once registered,
             you can invite recruiters to your account, manage job openings, and access detailed candidate
             insights. Each company can have multiple recruiters and manage unlimited job positions.
           </p>
-          <p style={{ fontSize: 15, color: '#475569', lineHeight: 1.8 }}>
-            <strong style={{ color: '#1e293b' }}>Features:</strong> Multi-recruiter support, candidate pool management, role-based access control,
+          <p style={{ fontSize: 15, color: 'var(--text-secondary)', lineHeight: 1.8 }}>
+            <strong style={{ color: 'var(--text)' }}>Features:</strong> Multi-recruiter support, candidate pool management, role-based access control,
             analytics dashboard, and integration with existing HR systems.
           </p>
         </div>
@@ -305,4 +329,3 @@ export default function Companies({ companies, setCompanies }) {
     </div>
   );
 }
-

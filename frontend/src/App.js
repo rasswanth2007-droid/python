@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { ThemeProvider } from './ThemeContext';
 import Navigation from './components/Navigation';
 import RecruiterDashboard from './pages/RecruiterDashboard';
 import CandidateDashboard from './pages/CandidateDashboard';
@@ -37,7 +38,6 @@ export default function App() {
   const [candidates, setCandidates] = useState([]);
   const [companies, setCompanies] = useState(DEFAULT_COMPANIES);
 
-  // Callback to update candidates when recruiter uploads resumes
   const handleCandidatesUpdate = (newCandidates) => {
     setCandidates(newCandidates);
   };
@@ -58,9 +58,11 @@ export default function App() {
   };
 
   return (
-    <div>
-      <Navigation currentPage={currentPage} onPageChange={setCurrentPage} />
-      {renderPage()}
-    </div>
+    <ThemeProvider>
+      <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
+        <Navigation currentPage={currentPage} onPageChange={setCurrentPage} />
+        {renderPage()}
+      </div>
+    </ThemeProvider>
   );
 }
