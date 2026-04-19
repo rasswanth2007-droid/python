@@ -1,19 +1,32 @@
 import axios from 'axios';
 
-const API = axios.create({ baseURL: '/api' });
+const API = axios.create({
+baseURL: 'https://hiresense-backend-64gq.onrender.com/api'
+});
 
 export const uploadResumes = (files) => {
-  const form = new FormData();
-  files.forEach(f => form.append('resumes', f));
-  return API.post('/upload', form, { headers: { 'Content-Type': 'multipart/form-data' } });
+const form = new FormData();
+files.forEach(f => form.append('resumes', f));
+
+return API.post('/upload', form, {
+headers: { 'Content-Type': 'multipart/form-data' }
+});
 };
 
 export const matchCandidates = (candidates, requiredSkills, jobDescription, minExperience, weights) =>
-  API.post('/match', { candidates, required_skills: requiredSkills, job_description: jobDescription, min_experience: minExperience, weights });
+API.post('/match', {
+candidates,
+required_skills: requiredSkills,
+job_description: jobDescription,
+min_experience: minExperience,
+weights
+});
 
 export const parseJD = (text) =>
-  API.post('/parse-jd', { text });
+API.post('/parse-jd', { text });
 
-export const healthCheck = () => API.get('/health');
+export const healthCheck = () =>
+API.get('/health');
 
-export const getSampleCandidates = () => API.get('/samples');
+export const getSampleCandidates = () =>
+API.get('/samples');
