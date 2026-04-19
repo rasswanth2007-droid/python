@@ -343,8 +343,8 @@ export default function CandidateCard({ candidate, index, onShortlist }) {
           {[
             { label: 'Skill Match', val: c.skill_score + '%' },
             { label: 'Semantic', val: c.semantic_score + '%' },
-            { label: 'Projects', val: (c.project_weight || 0) + '%' },
-            { label: 'Experience', val: c.experience_bonus ? '+15%' : '-' },
+            { label: 'Projects', val: (c.project_weight ?? 0) + '%' },
+            { label: 'Experience', val: c.experience_bonus ? '+15%' : '0%' },
           ].map(item => (
             <div key={item.label} style={{
               flex: isMobile ? '1 1 45%' : 1,
